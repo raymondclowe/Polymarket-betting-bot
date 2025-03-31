@@ -29,24 +29,12 @@ const promptUser = async (): Promise<TradeParams> => {
 
     const retryLimit = parseInt(await question('Enter retry limit: '), 10);
 
-    const initialOrderTimeout = parseInt(
-        await question('Enter initial order timeout (in seconds): '),
+    const orderTimeout = parseInt(
+        await question('Enter order timeout (in seconds): '),
         10
     );
-    const secondOrderIncrement = parseInt(
-        await question('Enter second order increment (in cents): '),
-        10
-    );
-    const secondOrderTimeout = parseInt(
-        await question('Enter second order timeout (in seconds): '),
-        10
-    );
-    const finalOrderIncrement = parseInt(
-        await question('Enter final order increment (in cents): '),
-        10
-    );
-    const finalOrderTimeout = parseInt(
-        await question('Enter final order timeout (in seconds): '),
+    const orderIncrement = parseInt(
+        await question('Enter order increment (in cents): '),
         10
     );
 
@@ -56,11 +44,8 @@ const promptUser = async (): Promise<TradeParams> => {
         targetWallet,
         copyRatio,
         retryLimit,
-        initialOrderTimeout,
-        secondOrderIncrement,
-        secondOrderTimeout,
-        finalOrderIncrement,
-        finalOrderTimeout,
+        orderIncrement,
+        orderTimeout,
     };
 };
 

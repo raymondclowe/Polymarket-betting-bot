@@ -11,9 +11,6 @@ export interface TradeParams {
     targetWallet: string;
     copyRatio: number;
     retryLimit: number;
-    initialOrderTimeout: number;
-    secondOrderIncrement: number;
-    secondOrderTimeout: number;
-    finalOrderIncrement: number;
-    finalOrderTimeout: number;
+    orderIncrement: number;
+    orderTimeout: number;
 }

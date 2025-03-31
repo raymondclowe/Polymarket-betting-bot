@@ -1,6 +1,7 @@
 import { ClobClient, OrderType, Side } from '@polymarket/clob-client';
 import { TradeData, TradeParams } from '../interfaces/tradeInterfaces';
 import getMyBalance from '../utils/getMyBalance';
+import { parseArgs } from 'util';
 
 const tradeExecutor = async (clobClient: ClobClient, data: TradeData, params: TradeParams) => {
     console.log('\n------------------------------------------\n New trade executing process: ', data);
@@ -22,25 +23,6 @@ const tradeExecutor = async (clobClient: ClobClient, data: TradeData, params: Tr
         console.log(`reset size as ${size}=1/${price}`);
         // return;    
     }
-
-    const executeOrderWithRetry = async (
-        price: number,
-        size: number,
-        timeout: number
-    ): Promise<boolean> => {
-        for (let attempt = 1; attempt <= params.retryLimit; attempt++) {
-            console.log(
-                `✅ Attempt ${attempt} of ${params.retryLimit} for price: ${price}, size: ${size}`
-            );
-
-            const success = await executeOrder(price, size, timeout);
-            if (success) return true;
-        }
-        console.error(
-            `All ${params.retryLimit} attempts failed for price: ${price}, size: ${size} 🔥 `
-        );
-        return false;
-    };
 
     const executeOrder = async (price: number, size: number, timeout: number): Promise<boolean> => {
         try {
@@ -73,24 +55,20 @@ const tradeExecutor = async (clobClient: ClobClient, data: TradeData, params: Tr
         }
     };
 
-    // Attempt initial order
-    if (await executeOrderWithRetry(price, size, params.initialOrderTimeout)) return;
+    for (let attempt = 1; attempt <= params.retryLimit; attempt++) {
+        // Attempt  order
+        console.log(
+            `✅ Attempt ${attempt} of ${params.retryLimit} for price: ${price}, size: ${size}`
+        );
+        if (await executeOrder(price, size, params.orderTimeout)) return;
+        price = data.side
+            ? price - params.orderIncrement / 100
+            : price + params.orderIncrement / 100;
+        if (price < 0) break;
+        // size = size - size * (params.orderIncrement / 100);
+    }
 
-    // Attempt second order with adjusted price
-    price = data.side
-        ? price - params.secondOrderIncrement / 100
-        : price + params.secondOrderIncrement / 100;
-    size = size - size * (params.secondOrderIncrement / 100);
-    if (await executeOrderWithRetry(price, size, params.secondOrderTimeout)) return;
-
-    // Attempt final order with further adjusted price
-    price = data.side
-        ? price - params.finalOrderIncrement / 100
-        : price + params.finalOrderIncrement / 100;
-    size = size - size * (params.finalOrderIncrement / 100);
-    if (await executeOrderWithRetry(price, size, params.finalOrderTimeout)) return;
-
-    console.log('Order failed to complete after all attempts.');
+    console.log('🔥 All ${params.retryLimit} attempts failed.');
 };
 
 export default tradeExecutor;
