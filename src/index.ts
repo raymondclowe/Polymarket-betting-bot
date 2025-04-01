@@ -26,15 +26,13 @@ const promptUser = async (): Promise<TradeParams> => {
         await question('Enter your wanted ratio (fraction): '),
         10
     );
-
     const retryLimit = parseInt(await question('Enter retry limit: '), 10);
-
     const orderTimeout = parseInt(
         await question('Enter order timeout (in seconds): '),
         10
     );
     const orderIncrement = parseInt(
-        await question('Enter order increment (in cents): '),
+        await question('rement (in cents): '),
         10
     );
 
@@ -59,13 +57,12 @@ export const main = async () => {
     createClobClientSpinner.succeed('ClobClient created\n');
     const params = await promptUser();
     
-    const botStartSpinner = ora('Starting the bot...').start();
     const monitor = new TradeMonitor();
     monitor.on('transaction', (data) => {
         tradeExecutor(clobClient, data, params);
+        // botStartSpinner.succeed('Bot started\n');
     });
     monitor.start(params.targetWallet);
-    botStartSpinner.succeed('Bot started\n');
 };
 
 main();

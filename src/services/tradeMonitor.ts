@@ -3,16 +3,18 @@ import { EventEmitter } from 'events'; // Import EventEmitter
 import { getPolyMarketModel } from '../models/PolyMarket';
 import { ENV } from '../config/env';
 import { abi } from '../polymarket/abi';
+import ora from 'ora';
 
 const WSS_URL = ENV.WSS_URL;
 
 class TradeMonitor extends EventEmitter {
     async start(TARGET_WALLET: string) {
+        
         try {
             const wssProvider = new ethers.providers.WebSocketProvider(WSS_URL);
             const iface = new ethers.utils.Interface(abi);
 
-            console.log('Listening for new blocks...');
+            // console.log('Listening for new blocks...');
 
             // Listen for new blocks
             wssProvider.on('block', async (blockNumber) => {
@@ -38,6 +40,7 @@ class TradeMonitor extends EventEmitter {
 
                         const found_arg = args.find((arg) => arg.maker.toLocaleLowerCase() === TARGET_WALLET.toLocaleLowerCase());
                         if (!found_arg) continue;
+                        // console.log('Found matching transaction:', tx.hash);
 
                         const receipt = await wssProvider.getTransactionReceipt(tx.hash);
                         if (receipt && receipt.status !== 1) continue;
@@ -52,6 +55,7 @@ class TradeMonitor extends EventEmitter {
                         ).toNumber();
 
                         // Emit an event with the decoded transaction data
+                        console.log(`\n\nNew transaction dectected: ${tx.hash}\n`);
                         this.emit('transaction', {
                             blockNumber,
                             transactionHash: tx.hash,
